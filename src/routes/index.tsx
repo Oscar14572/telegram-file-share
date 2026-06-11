@@ -1,8 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useRef, useState } from "react";
 
-const WEBHOOK_URL =
-  "https://oleon-123.app.n8n.cloud/webhook/84b64a3c-99e3-4fc5-ae07-85ce3eabded7";
+const WEBHOOK_URLS = {
+  prod: "https://oleon-123.app.n8n.cloud/webhook/84b64a3c-99e3-4fc5-ae07-85ce3eabded7",
+  test: "https://oleon-123.app.n8n.cloud/webhook-test/84b64a3c-99e3-4fc5-ae07-85ce3eabded7",
+} as const;
+type Mode = keyof typeof WEBHOOK_URLS;
 
 export const Route = createFileRoute("/")({
   head: () => ({
