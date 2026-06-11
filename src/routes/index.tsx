@@ -1,8 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useRef, useState } from "react";
 
-const WEBHOOK_URL =
-  "https://oleon-123.app.n8n.cloud/webhook/84b64a3c-99e3-4fc5-ae07-85ce3eabded7";
+const WEBHOOK_URLS = {
+  prod: "https://oleon-123.app.n8n.cloud/webhook/84b64a3c-99e3-4fc5-ae07-85ce3eabded7",
+  test: "https://oleon-123.app.n8n.cloud/webhook-test/84b64a3c-99e3-4fc5-ae07-85ce3eabded7",
+} as const;
+type Mode = keyof typeof WEBHOOK_URLS;
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -33,6 +36,7 @@ function Index() {
   const [result, setResult] = useState<{ url: string; name: string } | null>(
     null,
   );
+  const [mode, setMode] = useState<Mode>("prod");
   const [dragging, setDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -75,7 +79,7 @@ function Index() {
       const fd = new FormData();
       fd.append("file", file, file.name);
       fd.append("filename", file.name);
-      const res = await fetch(WEBHOOK_URL, { method: "POST", body: fd });
+      const res = await fetch(WEBHOOK_URLS[mode], { method: "POST", body: fd });
       if (!res.ok) throw new Error(`El flujo respondió con código ${res.status}`);
 
       const blob = await res.blob();
@@ -118,6 +122,25 @@ function Index() {
           className="rounded-2xl bg-card border border-border p-6 sm:p-8"
           style={{ boxShadow: "var(--shadow-elegant)" }}
         >
+          <div className="mb-6 flex items-center justify-center">
+            <div className="inline-flex rounded-lg border border-border bg-muted/40 p-1">
+              {(["prod", "test"] as const).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setMode(m)}
+                  disabled={busy}
+                  className={`px-4 py-1.5 text-xs font-medium rounded-md transition-[var(--transition-smooth)] ${
+                    mode === m
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {m === "prod" ? "Producción" : "Test"}
+                </button>
+              ))}
+            </div>
+          </div>
           <label
             onDragOver={(e) => {
               e.preventDefault();
