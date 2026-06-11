@@ -36,6 +36,7 @@ function Index() {
   const [result, setResult] = useState<{ url: string; name: string } | null>(
     null,
   );
+  const [mode, setMode] = useState<Mode>("prod");
   const [dragging, setDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
