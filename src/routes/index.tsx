@@ -122,6 +122,25 @@ function Index() {
           className="rounded-2xl bg-card border border-border p-6 sm:p-8"
           style={{ boxShadow: "var(--shadow-elegant)" }}
         >
+          <div className="mb-6 flex items-center justify-center">
+            <div className="inline-flex rounded-lg border border-border bg-muted/40 p-1">
+              {(["prod", "test"] as const).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setMode(m)}
+                  disabled={busy}
+                  className={`px-4 py-1.5 text-xs font-medium rounded-md transition-[var(--transition-smooth)] ${
+                    mode === m
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {m === "prod" ? "Producción" : "Test"}
+                </button>
+              ))}
+            </div>
+          </div>
           <label
             onDragOver={(e) => {
               e.preventDefault();
