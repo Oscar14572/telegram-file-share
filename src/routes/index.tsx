@@ -110,8 +110,12 @@ function Index() {
             Procesador de PDF
           </div>
           <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight text-foreground">
-            Cargar PDF
+            Sube tu PDF
           </h1>
+          <p className="mt-3 text-muted-foreground">
+            El archivo se envía al flujo y recibirás el resultado en{" "}
+            <span className="text-foreground font-medium">.txt</span> aquí mismo.
+          </p>
         </header>
 
         <section
@@ -275,6 +279,9 @@ function Index() {
           )}
         </section>
 
+        <p className="text-center text-xs text-muted-foreground mt-6">
+          Procesamiento automático mediante el flujo conectado.
+        </p>
       </div>
     </main>
   );
