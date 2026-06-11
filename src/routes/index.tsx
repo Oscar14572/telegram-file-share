@@ -79,7 +79,7 @@ function Index() {
       const fd = new FormData();
       fd.append("file", file, file.name);
       fd.append("filename", file.name);
-      const res = await fetch(WEBHOOK_URL, { method: "POST", body: fd });
+      const res = await fetch(WEBHOOK_URLS[mode], { method: "POST", body: fd });
       if (!res.ok) throw new Error(`El flujo respondió con código ${res.status}`);
 
       const blob = await res.blob();
