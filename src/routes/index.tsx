@@ -10,13 +10,13 @@ type Mode = keyof typeof WEBHOOK_URLS;
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Procesar PDF · Subida rápida" },
+      { title: "Procesamiento de datos" },
       {
         name: "description",
         content:
           "Sube un PDF y recibe automáticamente el archivo de texto procesado por el flujo.",
       },
-      { property: "og:title", content: "Procesar PDF · Subida rápida" },
+      { property: "og:title", content: "Procesamiento de datos" },
       {
         property: "og:description",
         content:
