@@ -122,6 +122,8 @@ function Index() {
           className="rounded-2xl bg-card border border-border p-6 sm:p-8"
           style={{ boxShadow: "var(--shadow-elegant)" }}
         >
+          {/* Selector Producción/Test oculto temporalmente para la presentación.
+              Descomenta este bloque para restaurarlo; el modo sigue por defecto en "prod".
           <div className="mb-6 flex items-center justify-center">
             <div className="inline-flex rounded-lg border border-border bg-muted/40 p-1">
               {(["prod", "test"] as const).map((m) => (
@@ -141,6 +143,7 @@ function Index() {
               ))}
             </div>
           </div>
+          */}
           <label
             onDragOver={(e) => {
               e.preventDefault();
