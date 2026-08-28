@@ -7,6 +7,9 @@ const WEBHOOK_URLS = {
 } as const;
 type Mode = keyof typeof WEBHOOK_URLS;
 
+// Tiempo máximo de espera por la respuesta del flujo (10 minutos)
+const TIMEOUT_MS = 10 * 60 * 1000;
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -75,27 +78,77 @@ function Index() {
       URL.revokeObjectURL(result.url);
       setResult(null);
     }
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
     try {
       const fd = new FormData();
       fd.append("file", file, file.name);
       fd.append("filename", file.name);
-      const res = await fetch(WEBHOOK_URLS[mode], { method: "POST", body: fd });
-      if (!res.ok) throw new Error(`El flujo respondió con código ${res.status}`);
+      const res = await fetch(WEBHOOK_URLS[mode], {
+        method: "POST",
+        body: fd,
+        signal: controller.signal,
+      });
 
-      const blob = await res.blob();
+      const rawText = await res.text();
+
+      if (!res.ok) {
+        let detail = "";
+        try {
+          const j = JSON.parse(rawText);
+          detail = j.message || j.error || "";
+        } catch {
+          detail = rawText.slice(0, 200);
+        }
+        throw new Error(
+          `El flujo falló (código ${res.status})${detail ? `: ${detail}` : ""}`,
+        );
+      }
+
+      const trimmed = rawText.trim();
+      if (!trimmed) {
+        throw new Error(
+          "El flujo respondió vacío. Es posible que haya fallado o que aún no haya terminado. Revisa la ejecución en n8n e inténtalo de nuevo.",
+        );
+      }
+
+      // n8n devuelve JSON cuando hay error o cuando el nodo final no envía el binario
+      if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+        try {
+          const j = JSON.parse(trimmed);
+          const errMsg =
+            j?.message || j?.error || j?.[0]?.message || j?.[0]?.error;
+          if (errMsg) throw new Error(`El flujo reportó un error: ${errMsg}`);
+        } catch (e) {
+          if (e instanceof Error && e.message.startsWith("El flujo reportó"))
+            throw e;
+        }
+      }
+
       const cd = res.headers.get("content-disposition") || "";
       const match = cd.match(/filename\*?=(?:UTF-8'')?["]?([^;"\n]+)["]?/i);
       const baseName = file.name.replace(/\.pdf$/i, "");
       const name = match?.[1]
         ? decodeURIComponent(match[1])
         : `${baseName}-resultado.txt`;
-      const url = URL.createObjectURL(blob);
+      const url = URL.createObjectURL(
+        new Blob([rawText], { type: "text/plain;charset=utf-8" }),
+      );
       setResult({ url, name });
       setStatus("done");
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Error desconocido";
+      const msg =
+        err instanceof DOMException && err.name === "AbortError"
+          ? `El flujo tardó más de ${Math.round(TIMEOUT_MS / 60000)} minutos en responder. Revisa la ejecución en n8n; puede seguir corriendo o haber fallado.`
+          : err instanceof TypeError
+            ? "No se pudo contactar el flujo (red o CORS). Verifica que el workflow esté activo."
+            : err instanceof Error
+              ? err.message
+              : "Error desconocido";
       setErrorMsg(msg);
       setStatus("error");
+    } finally {
+      clearTimeout(timeoutId);
     }
   };
 
